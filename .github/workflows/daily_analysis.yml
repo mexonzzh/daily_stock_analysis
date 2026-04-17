@@ -29,7 +29,36 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # 检查是否有重复触发
+  check-duplicate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.check.outputs.should_skip }}
+    steps:
+      - name: 检查是否有正在运行的相同 workflow
+        id: check
+        run: |
+          # 使用 GitHub API 检查是否有其他 run 正在运行
+          RUNNING=$(gh run list --workflow daily_analysis.yml --status in_progress --json id -q 'length(@)' 2>/dev/null || echo "0")
+          CURRENT_RUN=${{ github.run_id }}
+          
+          echo "当前 run_id: $CURRENT_RUN"
+          echo "正在运行的 workflow 数量: $RUNNING"
+          
+          # 如果有其他 workflow 在运行（数量 > 0），则跳过
+          if [ "$RUNNING" -gt 0 ]; then
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "⚠️ 检测到其他正在运行的 workflow，跳过本次执行"
+          else
+            echo "should_skip=false" >> $GITHUB_OUTPUT
+            echo "✅ 没有其他正在运行的 workflow，继续执行"
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   analyze:
+    needs: check-duplicate
+    if: needs.check-duplicate.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     # 添加超时限制，防止任务卡死
     timeout-minutes: 30
