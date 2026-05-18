@@ -1559,7 +1559,8 @@ class NotificationService(
         self,
         content: str,
         email_stock_codes: Optional[List[str]] = None,
-        email_send_to_all: bool = False
+        email_send_to_all: bool = False,
+        feishu_stock_codes: Optional[List[str]] = None
     ) -> bool:
         """
         统一发送接口 - 向所有已配置的渠道发送
@@ -1635,7 +1636,14 @@ class NotificationService(
                     else:
                         result = self.send_to_wechat(content)
                 elif channel == NotificationChannel.FEISHU:
-                    result = self.send_to_feishu(content)
+                    if feishu_stock_codes:
+                        # 飞书分流：每个股票单独发送到对应群
+                        feishu_success = False
+                        for sc in feishu_stock_codes:
+                            feishu_success = self.send_to_feishu(content, stock_code=sc) or feishu_success
+                        result = feishu_success
+                    else:
+                        result = self.send_to_feishu(content)
                 elif channel == NotificationChannel.TELEGRAM:
                     if use_image:
                         result = self._send_telegram_photo(image_bytes)
