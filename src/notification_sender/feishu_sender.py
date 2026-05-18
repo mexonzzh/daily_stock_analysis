@@ -157,13 +157,15 @@ class FeishuSender:
             entry = entry.strip()
             if not entry or "→" not in entry:
                 continue
-            _, url_part = entry.split("→", 1)
+            codes_part, url_part = entry.split("→", 1)
+            codes = [c.strip() for c in codes_part.split(",")]
             url = url_part.strip()
             if url in sent_urls:
                 continue
             sent_urls.add(url)
             logger.info(f"发送市场报告到群: {url[:60]}...")
-            if self.send_to_feishu(content, stock_code=None):
+            # 直接使用 _send_feishu_message 发送，不走 stock_code 路由
+            if self._send_feishu_message(self._apply_keyword_prefix(content), url):
                 success = True
             else:
                 logger.error(f"群 {url[:60]}... 发送失败")
