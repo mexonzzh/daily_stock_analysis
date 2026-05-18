@@ -103,7 +103,7 @@ def run_market_review(
                 # 添加标题
                 report_content = f"🎯 大盘复盘\n\n{review_report}"
 
-                success = notifier.send(report_content, email_send_to_all=True)
+                success = notifier.send_to_all_feishu_groups(report_content)
                 if success:
                     logger.info("大盘复盘推送成功")
                 else:
