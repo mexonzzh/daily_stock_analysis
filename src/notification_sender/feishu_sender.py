@@ -137,6 +137,38 @@ class FeishuSender:
             logger.error(f"发送飞书消息失败: {e}")
             return False
    
+
+
+    def send_to_all_feishu_groups(self, content: str) -> bool:
+        """
+        发送消息到 STOCK_GROUP_MAP 中的所有群（用于大盘/市场分析报告）
+        
+        Returns:
+            是否至少有一个群发送成功
+        """
+        import os
+        stock_group_map = os.getenv("STOCK_GROUP_MAP", "")
+        if not stock_group_map:
+            return self.send_to_feishu(content)
+
+        success = False
+        sent_urls = set()
+        for entry in stock_group_map.split(";"):
+            entry = entry.strip()
+            if not entry or "→" not in entry:
+                continue
+            _, url_part = entry.split("→", 1)
+            url = url_part.strip()
+            if url in sent_urls:
+                continue
+            sent_urls.add(url)
+            logger.info(f"发送市场报告到群: {url[:60]}...")
+            if self.send_to_feishu(content, stock_code=None):
+                success = True
+            else:
+                logger.error(f"群 {url[:60]}... 发送失败")
+        return success
+
     def _send_feishu_chunked(self, content: str, max_bytes: int, feishu_url: str = None) -> bool:
         """
         分批发送长消息到飞书
