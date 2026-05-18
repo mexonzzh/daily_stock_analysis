@@ -42,9 +42,13 @@ class FeishuSender:
 
     def _get_webhook_by_stock(self, stock_code: str) -> str:
         """根据股票代码返回对应的群 webhook"""
+        # 调试：打印调用栈
+        import traceback
+        logger.debug(f"[_get_webhook_by_stock] called with stock_code={stock_code}")
+        """根据股票代码返回对应的群 webhook"""
         import os
         stock_group_map = os.getenv("STOCK_GROUP_MAP", "")
-        logger.info(f"🔍 [_get_webhook_by_stock] stock_code={stock_code}, STOCK_GROUP_MAP={stock_group_map[:200] if stock_group_map else 'EMPTY'}...")
+        logger.debug(f"[_get_webhook_by_stock] stock_code={stock_code}, feishu_url={feishu_url}")
         if not stock_group_map:
             return self._feishu_url
 
