@@ -44,6 +44,7 @@ class FeishuSender:
         """根据股票代码返回对应的群 webhook"""
         import os
         stock_group_map = os.getenv("STOCK_GROUP_MAP", "")
+        logger.info(f"🔍 [_get_webhook_by_stock] stock_code={stock_code}, STOCK_GROUP_MAP={stock_group_map[:200] if stock_group_map else 'EMPTY'}...")
         if not stock_group_map:
             return self._feishu_url
 
