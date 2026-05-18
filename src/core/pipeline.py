@@ -1571,7 +1571,7 @@ class StockAnalysisPipeline:
                     if channel == NotificationChannel.WECHAT:
                         continue
                     if channel == NotificationChannel.FEISHU:
-                        non_wechat_success = self.notifier.send_to_feishu(report) or non_wechat_success
+                        non_wechat_success = self.notifier.send_to_all_feishu_groups(report) or non_wechat_success
                     elif channel == NotificationChannel.TELEGRAM:
                         use_image = self.notifier._should_use_image_for_channel(
                             channel, image_bytes
