@@ -462,26 +462,7 @@ def run_full_analysis(
             save_context_snapshot=save_context_snapshot
         )
 
-        # 1. 运行个股分析
-        results = pipeline.run(
-            stock_codes=stock_codes,
-            dry_run=args.dry_run,
-            send_notification=not args.no_notify,
-            merge_notification=merge_notification
-        )
-
-        # Issue #128: 分析间隔 - 在个股分析和大盘分析之间添加延迟
-        analysis_delay = getattr(config, 'analysis_delay', 0)
-        if (
-            analysis_delay > 0
-            and config.market_review_enabled
-            and not args.no_market_review
-            and effective_region != ''
-        ):
-            logger.info(f"等待 {analysis_delay} 秒后执行大盘复盘（避免API限流）...")
-            time.sleep(analysis_delay)
-
-        # 2. 运行大盘复盘（如果启用且不是仅个股模式）
+        # 1. 运行大盘复盘（如果启用且不是仅个股模式）
         market_report = ""
         if (
             config.market_review_enabled
@@ -496,9 +477,27 @@ def run_full_analysis(
                 merge_notification=merge_notification,
                 override_region=effective_region,
             )
-            # 如果有结果，赋值给 market_report 用于后续飞书文档生成
             if review_result:
                 market_report = review_result
+
+        # Issue #128: 分析间隔 - 在大盘分析和个股分析之间添加延迟
+        analysis_delay = getattr(config, 'analysis_delay', 0)
+        if (
+            analysis_delay > 0
+            and config.market_review_enabled
+            and not args.no_market_review
+            and effective_region != ''
+        ):
+            logger.info(f"等待 {analysis_delay} 秒后执行个股分析（避免API限流）...")
+            time.sleep(analysis_delay)
+
+        # 2. 运行个股分析
+        results = pipeline.run(
+            stock_codes=stock_codes,
+            dry_run=args.dry_run,
+            send_notification=not args.no_notify,
+            merge_notification=merge_notification
+        )
 
         # Issue #190: 合并推送（个股+大盘复盘）
         if merge_notification and (results or market_report) and not args.no_notify:
