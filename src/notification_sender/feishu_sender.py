@@ -42,12 +42,21 @@ class FeishuSender:
 
     def _get_webhook_by_stock(self, stock_code: str) -> str:
         """根据股票代码返回对应的群 webhook"""
-        """根据股票代码返回对应的群 webhook"""
         import os
         stock_group_map = os.getenv("STOCK_GROUP_MAP", "")
-        logger.debug(f"[_get_webhook_by_stock] stock_code={stock_code}, result_url={url if "url" in dir() else "self._feishu_url"}")
         if not stock_group_map:
             return self._feishu_url
+
+        for entry in stock_group_map.split(";"):
+            entry = entry.strip()
+            if not entry or "→" not in entry:
+                continue
+            codes_part, url_part = entry.split("→", 1)
+            codes = [c.strip() for c in codes_part.split(",")]
+            url = url_part.strip()
+            if stock_code in codes:
+                return url
+        return self._feishu_url
 
         for entry in stock_group_map.split(";"):
             entry = entry.strip()
