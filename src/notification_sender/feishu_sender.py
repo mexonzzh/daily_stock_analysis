@@ -46,29 +46,6 @@ class FeishuSender:
         stock_group_map = os.getenv("STOCK_GROUP_MAP", "")
         if not stock_group_map:
             return self._feishu_url
-
-        for entry in stock_group_map.split(";"):
-            entry = entry.strip()
-            if not entry or "→" not in entry:
-                continue
-            codes_part, url_part = entry.split("→", 1)
-            codes = [c.strip() for c in codes_part.split(",")]
-            url = url_part.strip()
-            if stock_code in codes:
-                return url
-        return self._feishu_url
-
-        for entry in stock_group_map.split(";"):
-            entry = entry.strip()
-            if not entry or "→" not in entry:
-                continue
-            codes_part, url_part = entry.split("→", 1)
-            codes = [c.strip() for c in codes_part.split(",")]
-            url = url_part.strip()
-            if stock_code in codes:
-                return url
-        return self._feishu_url
-
     def _get_keyword_prefix(self) -> str:
         """Return the keyword prefix required by Feishu webhook security settings."""
         if not self._feishu_keyword:
